@@ -1,13 +1,14 @@
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 
-import 'ContextMenu.dart';
+import 'context_menu.dart';
+import 'context_menu_builder.dart';
 
 /// Show a [ContextMenu] on the given [BuildContext]. For other parameters, see [ContextMenu].
 void showContextMenu(
   Offset offset,
   BuildContext context,
-  List<Widget> children,
+  ContextMenuBuilder builder,
   verticalPadding,
   width,
 ) {
@@ -18,7 +19,7 @@ void showContextMenu(
     ),
     builder: (context) => ContextMenu(
       position: offset,
-      children: children,
+      builder: builder,
       verticalPadding: verticalPadding,
       width: width,
     ),
@@ -31,45 +32,44 @@ void showContextMenu(
 /// with the corresponding location [Offset].
 
 class ContextMenuArea extends StatelessWidget {
-  /// The widget displayed inside the [ContextMenuArea]
   final Widget child;
-
-  /// A [List] of items to be displayed in an opened [ContextMenu]
-  ///
-  /// Usually, a [ListTile] might be the way to go.
-  final List<Widget> items;
-
-  /// The padding value at the top an bottom between the edge of the [ContextMenu] and the first / last item
+  final ContextMenuBuilder builder;
   final double verticalPadding;
-
-  /// The width for the [ContextMenu]. 320 by default according to Material Design specs.
   final double width;
+  final VoidCallback? onSecondaryTapDown;
 
   const ContextMenuArea({
     Key? key,
     required this.child,
-    required this.items,
+    required this.builder,
     this.verticalPadding = 8,
     this.width = 320,
+    this.onSecondaryTapDown,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onSecondaryTapDown: (details) => showContextMenu(
-        details.globalPosition,
-        context,
-        items,
-        verticalPadding,
-        width,
-      ),
-      onLongPressStart: (details) => showContextMenu(
-        details.globalPosition,
-        context,
-        items,
-        verticalPadding,
-        width,
-      ),
+      onSecondaryTapDown: (details) {
+        onSecondaryTapDown?.call();
+        showContextMenu(
+          details.globalPosition,
+          context,
+          builder,
+          verticalPadding,
+          width,
+        );
+      },
+      onLongPressStart: (details) {
+        onSecondaryTapDown?.call();
+        showContextMenu(
+          details.globalPosition,
+          context,
+          builder,
+          verticalPadding,
+          width,
+        );
+      },
       child: child,
     );
   }
